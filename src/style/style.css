@@ -1,8 +1,22 @@
 .wrapper {
-	width: 50%;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 2em;
 }
 
-.csv-input-container {
+.container {
+	width: 100%;
+}
+
+.left-container {
+	display: flex;
+	flex-direction: column;
+
+	gap: 1em;
+}
+
+.csv-input-container,
+.clipboard-raw-container {
 	display: flex;
 	flex-direction: column;
 	width: 100%;
@@ -15,6 +29,31 @@
 	border: 1px solid black;
 }
 
-#csv-input {
+#csv-input,
+#raw-output {
 	height: 100%;
+}
+
+.csv-table tbody {
+	height: 1px;
+}
+
+.csv-table th,
+.csv-table td {
+	vertical-align: text-top;
+	text-align: start;
+}
+
+.csv-table div {
+	display: flex;
+	align-items: flex-start;
+
+	height: 100%;
+	width: 100%;
+
+	padding: 0.25em;
+}
+
+.cell-tags {
+	flex-direction: column;
 }

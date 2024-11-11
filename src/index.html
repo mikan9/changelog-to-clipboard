@@ -6,15 +6,29 @@
 	</head>
 	<body onload="onLoad()">
 		<div class="wrapper">
-			<div class="csv-input-container">
-				<label for="csv-input">Input Query Result (CSV)</label>
-				<textarea name="csv-input" id="csv-input"></textarea>
+			<div class="left-container container">
+				<div class="csv-input-container">
+					<label for="csv-input">Input Query Result (CSV)</label>
+					<textarea name="csv-input" id="csv-input"></textarea>
+				</div>
+				<div class="csv-table-container">
+					<label>CSV Table</label>
+					<table class="csv-table">
+						<thead></thead>
+						<tbody></tbody>
+					</table>
+				</div>
 			</div>
-			<div class="output-container">
-				<ul
-					style="list-style-type: decimal"
-					class="link-container"
-				></ul>
+			<div class="right-container container">
+				<div class="clipboard-raw-container">
+					<label for="raw-output">Raw Output</label>
+					<textarea
+						name="raw-output"
+						readonly
+						id="raw-output"
+					></textarea>
+				</div>
+				<div class="output-container"></div>
 			</div>
 		</div>
 	</body>

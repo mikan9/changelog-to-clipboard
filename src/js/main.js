@@ -12,7 +12,6 @@ function parseHeaders(data) {
 	data = data.split("\n");
 	headers = data.at(0).split(",");
 	data.splice(0, 1);
-	console.log(data.at(0));
 
 	return data;
 }
@@ -26,15 +25,21 @@ function parseValue(data) {
 }
 
 function parseRow(data) {
-	/*     const _split = ()
-    const separatorIndex = data.indexOf('","'); */
-	const content = data.split(/(\"(?:,)\")|(\"(?:,,)\")/gm);
-	console.log(content);
+	const regex = /(\"(?:,)\")|(\"(?:,,)\")|(?:,$)/dgm;
+	let content = data.split(regex);
 
-	const items = content.map((item, index) => {
-		/* return /^"(.*)"$/gm.exec(item)?.at(1); */
-		/* console.log(item, parseValue(item)); */
+	content = content
+		.filter((item) => !!item && !regex.test(item?.replace(",,", "")))
+		.map((item) =>
+			item === '",,"'
+				? ""
+				: (item.at(0) === '"' || item.at(-1) === '"') &&
+				  item.split('"')?.length === 2
+				? item.replace('"', "")
+				: item.replaceAll('""', '"')
+		);
 
+	const items = content.map((item) => {
 		return parseValue(item);
 	});
 
@@ -52,6 +57,10 @@ function parseCSV(data) {
 	const content = data.map((item) => parseRow(item));
 
 	return content;
+}
+
+function parseTags(data) {
+	return data?.split(";")?.map((item) => item.trim());
 }
 
 function linkify(data) {
@@ -72,16 +81,48 @@ function format(str, ...args) {
 	return newString;
 }
 
+const getValue = (obj, prop) => (prop in obj ? obj[prop] : null);
+const getAttr = (attr = {}) =>
+	!!attr
+		? Object.keys(attr)
+				.filter((key) => key in attr)
+				.map((key) => `${key}="${attr[key]}"`)
+				.join(" ")
+		: "";
+const $ = (query) => document.querySelector(query);
+const $add = (tag, content = null, attr = {}) =>
+	`<${tag} ${getAttr(attr)}>${content || ""}</${tag}>`;
+
 function copyToClipboard() {
 	const data = parseCSV(csvInput.value);
 	const content = linkify(data);
 
-	const linkContainer = document.querySelector(".link-container");
+	const linkContainer = $(".output-container");
+	const rawContainer = $("#raw-output");
+	const thead = $(".csv-table thead");
+	const tbody = $(".csv-table tbody");
+
+	let theadInner = `<tr>`;
+	let tbodyInner = "";
+	for (let th of headers) {
+		theadInner += $add("th", $add("div", th));
+	}
+	theadInner += `</tr>`;
+
+	let linkInner = `<ol>`;
 
 	for (let link of content) {
 		const aStyle = `box-sizing: border-box; color: inherit; font-family: &quot;Segoe UI VSS (Regular)&quot;, &quot;Segoe UI&quot;, -apple-system, BlinkMacSystemFont, Roboto, &quot;Helvetica Neue&quot;, Helvetica, Ubuntu, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;; font-size: 14.6667px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal;`;
 		const spanStyle = `box-sizing: border-box; color: inherit; font-family: &quot;Segoe UI VSS (Regular)&quot;, &quot;Segoe UI&quot;, -apple-system, BlinkMacSystemFont, Roboto, &quot;Helvetica Neue&quot;, Helvetica, Ubuntu, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;; font-size: 11pt; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; background-color: inherit; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;`;
-		const template = `<li><a href="{0}" target="_blank" rel="noopener noreferrer" style="${aStyle}">{1}</a><span style="${spanStyle}">: {2}</span></li>`;
+		const template = $add(
+			"li",
+			$add("a", "{1}", {
+				href: "{0}",
+				target: "_blank",
+				rel: "noopener noreferrer",
+				style: aStyle,
+			}) + $add("span", " {2}", { style: spanStyle })
+		);
 		const formatted = format(
 			template,
 			link.Url,
@@ -89,8 +130,40 @@ function copyToClipboard() {
 			link.Title
 		);
 
-		linkContainer.innerHTML += formatted;
+		linkInner += formatted;
+
+		tbodyInner += `<tr>`;
+		for (let [key, value] of Object.entries(link)) {
+			if (headers.includes(key.replaceAll("_", " "))) {
+				tbodyInner += `<td><div class='cell-${key
+					.toLowerCase()
+					.replaceAll(" ", "_")}'>`;
+				switch (key) {
+					case "Tags":
+						parseTags(value).forEach((tag) =>
+							console.log(`'${tag}'`)
+						);
+
+						tbodyInner += `${parseTags(value)?.reduce(
+							(prev, cur) => prev + `<span>${cur}</span>`,
+							""
+						)}`;
+						break;
+					default:
+						tbodyInner += `${value}`;
+						break;
+				}
+				tbodyInner += `</div></td>`;
+			}
+		}
+		tbodyInner += `</tr>`;
 	}
+	linkInner += `</ol>`;
+
+	linkContainer.innerHTML = linkInner;
+	rawContainer.value = linkInner;
+	thead.innerHTML = theadInner;
+	tbody.innerHTML = tbodyInner;
 
 	navigator.clipboard
 		.write([
