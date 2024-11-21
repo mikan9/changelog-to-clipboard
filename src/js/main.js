@@ -25,19 +25,24 @@ function parseValue(data) {
 }
 
 function parseRow(data) {
-	const regex = /(\"(?:,)\")|(\"(?:,,)\")|(?:,$)/dgm;
+	const regex = /(\"(?:,)\")|(\"(?:,,)\")|(?:,$)/gm;
 	let content = data.split(regex);
+	console.log("content: ", content);
 
-	content = content
-		.filter((item) => !!item && !regex.test(item?.replace(",,", "")))
-		.map((item) =>
-			item === '",,"'
-				? ""
-				: (item.at(0) === '"' || item.at(-1) === '"') &&
-				  item.split('"')?.length === 2
-				? item.replace('"', "")
-				: item.replaceAll('""', '"')
-		);
+	content = content.filter(
+		(item) => !!item && !regex.test(item?.replace(",,", ""))
+	);
+	console.log("filtered: ", content);
+
+	content = content.map((item) =>
+		item === '",,"'
+			? ""
+			: (item.at(0) === '"' || item.at(-1) === '"') &&
+			  item.split('"')?.length === 2
+			? item.replace('"', "")
+			: item.replaceAll('""', '"')
+	);
+	console.log("mapped: ", content);
 
 	const items = content.map((item) => {
 		return parseValue(item);

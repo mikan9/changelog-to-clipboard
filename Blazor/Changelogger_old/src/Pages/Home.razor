@@ -1,0 +1,32 @@
+﻿@page "/"
+@inherits HomeComponentBase
+
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+<div class="wrapper">
+    <div class="left-container container">
+        <div class="csv-input-container">
+            <label for="csv-input">Input Query Result (CSV)</label>
+            <InputTextArea name="csv-input" class="csv-input" @bind-Value="CSVData">
+            </InputTextArea>
+        </div>
+        <div class="csv-table-container">
+            <label>CSV Table</label>
+            <table class="csv-table">
+                <thead></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    <div class="right-container container">
+        <div class="clipboard-raw-container">
+            <label for="raw-output">Raw Output</label>
+            <textarea name="raw-output" readonly id="raw-output"></textarea>
+        </div>
+        <div class="output-container"></div>
+    </div>
+</div>
+<button class="btn btn-primary" @onclick="ConvertCSV">Click me</button>
