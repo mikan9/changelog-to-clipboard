@@ -26,7 +26,7 @@
             <label for="raw-output">Raw Output</label>
             <textarea name="raw-output" readonly id="raw-output"></textarea>
         </div>
-        <div class="output-container"></div>
+        <div @ref="OutputContainer" class="output-container"><span>test</span></div>
     </div>
 </div>
 <button class="btn btn-primary" @onclick="ConvertCSV">Click me</button>

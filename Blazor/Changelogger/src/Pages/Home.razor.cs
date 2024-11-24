@@ -1,26 +1,37 @@
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using src.Util;
+using Changelogger.Util;
+using Changelogger.Services;
+using System.Reflection.Metadata;
 
-namespace src.Pages
+namespace Changelogger.Pages
 {
-    public partial class HomeComponentBase : ComponentBase
+    public partial class HomeComponentBase() : ComponentBase
     {
         [Inject]
-        private IJSRuntime Js { get; set; } = default!;
+        private IJSRuntime Js {get; set;} = default!;
+
+        [Inject]
+        private ClipboardService ClipboardService {get; set;} = default!;
 
         [GeneratedRegex("/\\s/g")]
         private static partial Regex KeyRegex();
+
         [GeneratedRegex(@"^""(.*)""$", RegexOptions.Multiline)]
         private static partial Regex ValueRegex();
+        
         [GeneratedRegex(@"(""(?:,)"")|(""(?:,,)"")|(?:,$)", RegexOptions.Multiline)]
         private static partial Regex RowRegex();
+
+        private readonly string baseUrl = "https://dev.azure.com/VaxaSverige/Team%20Orion/_workitems/edit/";
 
         private string[] headers = [];
         private string[] raw = [];
 
         public string CSVData = "";
+
+        public ElementReference OutputContainer;
 
         protected async Task ConvertCSV()
         {
@@ -52,10 +63,7 @@ namespace src.Pages
             string[] content = RowRegex()
                 .Split(data);
 
-            await Js.LogAsync("headers: ", headers);
-            await Js.LogAsync("content: ", content);
-            var filtered = content.Where(part => part != null && !RowRegex().IsMatch(part.Replace(",,", "")));
-            await Js.LogAsync("filtered: ", filtered);
+            var filtered = content.Where(part => part?.Length > 0 && !RowRegex().IsMatch(part.Replace(",,", "")));
             var mapped = filtered.Select(part =>
             part.Length == 0 ? part :
                 part == "\",,\""
@@ -66,22 +74,18 @@ namespace src.Pages
                 : part.Replace("\"\"", "\""))
             .ToArray();
 
-            await Js.LogAsync("mapped: ", mapped);
-
-            var items = content.Select(ParseValue).ToArray();
-            await Js.LogAsync("items: ", items);
+            var items = mapped.Select(ParseValue).ToArray();
 
             int index = 0;
             var dict = new Dictionary<string, string>();
             foreach (var item in items)
             {
-                await Js.LogAsync("index: ", index, "item: ", item);
                 string key = ParseKey(index);
-                await Js.LogAsync("key: ", key);
                 index++;
 
                 dict.Add(key, item);
             }
+            dict.Add("Url", baseUrl + dict["ID"]);
 
             return dict;
         }
@@ -98,15 +102,12 @@ namespace src.Pages
             return data.Split(';').Select(item => item.Trim()).ToArray();
         }
 
-        private string[] Linkify(string[] data)
-        {
-            return ["test"];
-        }
-
         public async Task CopyToClipboard()
         {
             var parsed = await ParseCSV(CSVData);
             await Js.LogAsync("test", headers, parsed, raw);
+
+            await ClipboardService.WriteHtmlAsync(OutputContainer);
         }
     }
 }

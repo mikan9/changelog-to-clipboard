@@ -47,6 +47,7 @@ function parseRow(data) {
 	const items = content.map((item) => {
 		return parseValue(item);
 	});
+	console.log("items: ", items);
 
 	return items.reduce((prev, cur, index) => {
 		let key = parseKey(index);

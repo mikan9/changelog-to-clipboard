@@ -1,6 +1,6 @@
 using Microsoft.JSInterop;
 
-namespace src.Util;
+namespace Changelogger.Util;
 
 public static class JSRuntimeExtension
 {
