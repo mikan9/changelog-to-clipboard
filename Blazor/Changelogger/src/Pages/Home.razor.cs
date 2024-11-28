@@ -30,6 +30,7 @@ namespace Changelogger.Pages
         private string[] raw = [];
 
         public string CSVData = "";
+        public Dictionary<string, string>[] items;
 
         public ElementReference OutputContainer;
 
@@ -104,8 +105,8 @@ namespace Changelogger.Pages
 
         public async Task CopyToClipboard()
         {
-            var parsed = await ParseCSV(CSVData);
-            await Js.LogAsync("test", headers, parsed, raw);
+            items = await ParseCSV(CSVData);
+            await Js.LogAsync("test", headers, items, raw);
 
             await ClipboardService.WriteHtmlAsync(OutputContainer);
         }

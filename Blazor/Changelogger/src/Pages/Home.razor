@@ -26,7 +26,21 @@
             <label for="raw-output">Raw Output</label>
             <textarea name="raw-output" readonly id="raw-output"></textarea>
         </div>
-        <div @ref="OutputContainer" class="output-container"><span>test</span></div>
+        <div @ref="OutputContainer" class="output-container">
+            @if (items != null)
+            {
+                <ol>
+                    @foreach (var item in items)
+                    {
+                        <li>
+                            <a href="@item["Url"]">@item["Work Item Type"] @item["ID"]</a>
+                            <span>@item["Title"]</span>
+                        
+                    </li>
+                }
+            </ol>
+            }
+        </div>
     </div>
 </div>
 <button class="btn btn-primary" @onclick="ConvertCSV">Click me</button>
